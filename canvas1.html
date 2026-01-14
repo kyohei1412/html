@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>623013 伊藤恭平</title>
+
+  <script>
+    var canvas, context;
+    var canvasW, canvasH;
+
+    var r = 20;
+    var MAX_BALLS = 50;
+
+    var colorArray = [
+      "rgb(255,0,0)",
+      "rgb(0,255,0)",
+      "rgb(0,0,255)",
+      "rgb(255,255,90)",
+      "rgb(0,255,255)"
+    ];
+
+    var balls = [];
+    var hitCount = 0; // 壁に当たった累計回数
+
+    function Ball(x, y, dx, dy, colorID) {
+      this.x = x;
+      this.y = y;
+      this.dx = dx;
+      this.dy = dy;
+      this.colorID = colorID;
+    }
+
+    function begin() {
+      canvas = document.getElementById("canvas1");
+      context = canvas.getContext("2d");
+      canvasW = canvas.width;
+      canvasH = canvas.height;
+
+      balls = [];
+      hitCount = 0;
+
+      // 最初の球を1個生成
+      balls.push(new Ball(100, 100, 3, 3, 0));
+
+      loop();
+    }
+
+    function loop() {
+      context.clearRect(0, 0, canvasW, canvasH);
+
+      var hitsThisFrame = 0; // このフレームで壁に当たった回数（全ボール合計）
+
+      for (var i = 0; i < balls.length; i++) {
+        var b = balls[i];
+
+        // 位置更新
+        b.x += b.dx;
+        b.y += b.dy;
+
+        // 壁判定
+        var hit = false;
+
+        // 左右
+        if (b.x <= r) { b.x = r; b.dx = -b.dx; hit = true; }
+        else if (b.x >= canvasW - r) { b.x = canvasW - r; b.dx = -b.dx; hit = true; }
+
+        // 上下
+        if (b.y <= r) { b.y = r; b.dy = -b.dy; hit = true; }
+        else if (b.y >= canvasH - r) { b.y = canvasH - r; b.dy = -b.dy; hit = true; }
+
+        // 当たったときの処理
+        if (hit) {
+          hitsThisFrame++;
+          b.colorID = (b.colorID + 1) % colorArray.length;
+        }
+
+        // 描画
+        context.beginPath();
+        context.fillStyle = colorArray[b.colorID];
+        context.arc(b.x, b.y, r, 0, Math.PI * 2, false);
+        context.fill();
+      }
+
+      // フレーム終わりにまとめて衝突回数を加算し、偶数到達で増殖（1フレーム最大1回）
+      if (hitsThisFrame > 0) {
+        var before = hitCount;
+        hitCount += hitsThisFrame;
+
+        // 「2回ごと」の区切りを跨いだか（2,4,6...）
+        var crossedEven = (Math.floor(hitCount / 2) > Math.floor(before / 2));
+
+        if (crossedEven && balls.length < MAX_BALLS) {
+          doubleBallsOnce();
+        }
+      }
+
+      setTimeout(loop, 10);
+    }
+
+    // 球を「1回だけ」倍にする（ただし最大 MAX_BALLS まで）
+    function doubleBallsOnce() {
+      var current = balls.length;
+      for (var i = 0; i < current && balls.length < MAX_BALLS; i++) {
+        var b = balls[i];
+        balls.push(new Ball(
+          b.x, b.y,
+          -b.dx, -b.dy,
+          (b.colorID + 1) % colorArray.length
+        ));
+      }
+    }
+  </script>
+</head>
+
+<body onload="begin()">
+  <canvas id="canvas1" width="800" height="500"></canvas>
+</body>
+</html>
+

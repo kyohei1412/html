@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>HTML5 Clock</title>
+
+  <script type="text/javascript">
+    // 色設定
+    var FRAME_COLOR   = "#9ca3af";  // 時計フレーム（灰色）
+    var HAND_COLOR    = "#9ca3af";  // 針（灰色）
+    var FACE_COLOR    = "#000000";  // 時計盤（黒）
+    var NUMBER_COLOR  = "#ffffff";  // 文字盤の数字（白）
+    var DIGITAL_COLOR = "#ffffff";  // デジタル時計の文字（白）
+    var DATE_COLOR    = "#ffffff";  // 日付文字（白）
+    var DIGITAL_BG    = "rgba(255,255,255,0.15)"; // デジタル背景
+
+    //線を描く
+    function line(C, T, R){
+      C.moveTo(200, 200);
+      C.lineTo(
+        200 + Math.sin(Math.PI * T) * R,
+        200 - Math.cos(Math.PI * T) * R
+      );
+    }
+
+    function pad2(n){
+      return (n < 10) ? ("0" + n) : ("" + n);
+    }
+
+    //メインループ
+    function loop(){
+      var cE = document.getElementById("canvas0");
+      var cC = cE.getContext("2d");
+      var now = new Date();
+
+      // 画面クリア
+      cC.clearRect(0, 0, cE.width, cE.height);
+
+      // 時計盤（黒）
+      cC.beginPath();
+      cC.arc(200, 200, 165, 0, Math.PI * 2);
+      cC.fillStyle = FACE_COLOR;
+      cC.fill();
+
+      // 時計フレーム（灰色）
+      cC.beginPath();
+      cC.arc(200, 200, 170, 0, Math.PI * 2);
+      cC.lineWidth = 8;
+      cC.strokeStyle = FRAME_COLOR;
+      cC.stroke();
+
+      // 目盛り
+      for(var i=0; i<60; i++){
+        var T = (i/60) * 2;
+        var r1 = (i%5==0) ? 145 : 155;
+        var r2 = 165;
+
+        var x1 = 200 + Math.sin(Math.PI*T)*r1;
+        var y1 = 200 - Math.cos(Math.PI*T)*r1;
+        var x2 = 200 + Math.sin(Math.PI*T)*r2;
+        var y2 = 200 - Math.cos(Math.PI*T)*r2;
+
+        cC.beginPath();
+        cC.moveTo(x1, y1);
+        cC.lineTo(x2, y2);
+        cC.lineWidth = (i%5==0) ? 4 : 2;
+        cC.strokeStyle = FRAME_COLOR;
+        cC.stroke();
+      }
+
+      // 文字盤（1〜12）
+      cC.fillStyle = NUMBER_COLOR;
+      cC.font = "20px sans-serif";
+      cC.textAlign = "center";
+      cC.textBaseline = "middle";
+
+      for(var h=1; h<=12; h++){
+        var Th = (h/12) * 2;
+        var r = 120;
+        var x = 200 + Math.sin(Math.PI*Th)*r;
+        var y = 200 - Math.cos(Math.PI*Th)*r;
+        cC.fillText(h, x, y);
+      }
+
+      // 針
+      var sec = now.getSeconds();
+      var min = now.getMinutes();
+      var hour = now.getHours() % 12;
+
+      var Tsec  = sec / 30;
+      var Tmin  = (min + sec/60) / 30;
+      var Thour = (hour + min/60) / 6;
+
+      // 短針
+      cC.beginPath();
+      cC.strokeStyle = HAND_COLOR;
+      cC.lineWidth = 8;
+      line(cC, Thour, 70);
+      cC.stroke();
+
+      // 長針
+      cC.beginPath();
+      cC.strokeStyle = HAND_COLOR;
+      cC.lineWidth = 5;
+      line(cC, Tmin, 105);
+      cC.stroke();
+
+      // 秒針
+      cC.beginPath();
+      cC.strokeStyle = HAND_COLOR;
+      cC.lineWidth = 2;
+      line(cC, Tsec, 125);
+      cC.stroke();
+
+      // 中心点
+      cC.beginPath();
+      cC.arc(200, 200, 6, 0, Math.PI * 2);
+      cC.fillStyle = HAND_COLOR;
+      cC.fill();
+
+      // デジタル時計
+      var HH = pad2(now.getHours());
+      var MM = pad2(now.getMinutes());
+      var SS = pad2(now.getSeconds());
+      var digital = HH + ":" + MM + ":" + SS;
+
+      var week = ["日","月","火","水","木","金","土"][now.getDay()];
+      var yyyy = now.getFullYear();
+      var mm = pad2(now.getMonth()+1);
+      var dd = pad2(now.getDate());
+      var dateText = yyyy + "/" + mm + "/" + dd + " (" + week + ")";
+
+      // デジタル背景
+      cC.fillStyle = DIGITAL_BG;
+      cC.fillRect(130, 250, 140, 40);
+
+      // デジタル文字
+      cC.fillStyle = DIGITAL_COLOR;
+      cC.font = "22px monospace";
+      cC.fillText(digital, 200, 270);
+
+      // 日付
+      cC.fillStyle = DATE_COLOR;
+      cC.font = "14px sans-serif";
+      cC.fillText(dateText, 200, 295);
+
+      // 1秒ごとに更新
+      setTimeout("loop()", 1000);
+    }
+  </script>
+</head>
+
+<body onLoad="loop()">
+  <canvas id="canvas0" width="400" height="400"></canvas>
+</body>
+</html>

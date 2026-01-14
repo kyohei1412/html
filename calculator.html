@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>電卓</title>
+</head>
+<body>
+
+  <h2>電卓</h2>
+
+  <input id="formula" type="text">
+
+  <button onclick="calc()">＝</button>
+
+  <p id="result">答え：</p>
+
+  <script>
+    function calc() {
+      const formula = document.getElementById("formula").value;
+
+      try {
+        // 数字と + - * / . だけ許可
+        if (!/^[0-9+\-*/.]+$/.test(formula)) {
+          alert("数字と + - * / のみ入力できます");
+          return;
+        }
+
+        const answer = eval(formula);
+        document.getElementById("result").textContent = "答え：" + answer;
+
+      } catch (e) {
+        alert("式が正しくありません");
+      }
+    }
+  </script>
+
+</body>
+</html>
+
